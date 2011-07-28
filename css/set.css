@@ -1,0 +1,14 @@
+body {
+	font-family: Helvetica, Arial, "Lucida Grande", sans-serif;
+	font-size: medium;
+	background: #fff;
+	color: #000;
+}
+
+h1 {
+	text-align: center;
+}
+
+#message {
+	text-align: center;
+}
