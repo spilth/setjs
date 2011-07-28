@@ -1,3 +1,70 @@
+dojo.declare("set.Game", null, {
+	deck: null,
+	table: null,
+	tableDiv: null,
+	
+	initializeGame: function() {
+		this.tableDiv = dojo.byId("theTable");
+
+		this.deck = new set.Deck();
+		this.deck.shuffle();
+		
+		this.table = new set.Table();
+		this.table.add(this.deck.draw(12));
+
+		this.renderTable();
+	},
+	
+	renderTable: function() {
+		for (i = 0; i < this.table.cards.length; i++) {
+			dojo.create("img", {src: this.table.cards[i].imageUrl}, this.tableDiv);
+		}
+	}
+});
+
+dojo.declare("set.Table", null, {
+	cards: new Array(),
+	
+	constructor: function() {
+
+	},
+
+	add: function(cards) {
+		this.cards = cards;
+	},
+});
+
+dojo.declare("set.Deck", null, {
+	cards: new Array(),
+
+	constructor: function() {
+		for (i = 0; i < 81; i++) {
+			this.cards.push(new set.Card());
+		}
+	},
+
+	shuffle: function() {
+
+	},
+	
+	draw: function(count) {
+		var draw = new Array();
+		for (i = 0; i < count; i++) {
+			draw.push(this.cards.pop());
+		}
+		return draw;
+	}
+});
+
+dojo.declare("set.Card", null, {
+	imageUrl: "images/cards/card0000.png",
+	
+	constructor: function(args) {
+		
+	}
+});
+
+/*
 function initializeBoard() {
 	$("#message").hide();
 }
@@ -71,3 +138,4 @@ var Table = new Class.create({
 		}
 	}
 });
+*/
