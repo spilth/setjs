@@ -21,7 +21,6 @@ dojo.declare("set.Game", null, {
 	},
 	
 	renderTable: function() {
-		alert(this.table.cards.length);
 		dojo.empty(this.tableDiv);
 		for (i = 0; i < this.table.cards.length; i++) {
 			var card = dojo.create("img", {src: this.table.cards[i].imageUrl, id: i, class: "card"}, this.tableDiv);
@@ -50,16 +49,12 @@ dojo.declare("set.Game", null, {
 	
 	checkForSet: function() {
 		if (this.isValidSetSelected()) {
-			alert("Cool beans!");
-			this.found.push(this.selected);
-
-			// increase score by 1
 			this.score++;
 			
-			// remove cards from table
+			this.selected.forEach(function(node, index, nodelist){
+				game.table.cards[node.id] = game.deck.drawOne();
+			});
 			
-			// draw 3 more cards
-			this.table.add(this.deck.draw(3));
 			this.renderTable();
 			
 		} else {
@@ -76,6 +71,22 @@ dojo.declare("set.Game", null, {
 	},
 	
 	isValidSetSelected: function() {
+		var a = game.table.cards[this.selected[0].id];
+		var b = game.table.cards[this.selected[1].id];
+		var c = game.table.cards[this.selected[2].id];
+
+		var count = a.count + b.count + c.count;
+		if (count % 3 > 0) return false;
+		
+		var color = a.color + b.color + c.color;
+		if (color % 3 > 0) return false;
+
+		var symbol = a.symbol + b.symbol + c.symbol;
+		if (symbol % 3 > 0) return false;
+
+		var shading = a.shading + b.shading + c.shading;
+		if (shading % 3 > 0) return false;
+				
 		return true;
 	}
 
@@ -91,6 +102,10 @@ dojo.declare("set.Table", null, {
 	add: function(cards) {
 		this.cards = this.cards.concat(cards);
 	},
+	
+	remove: function(index) {
+		this.cards.splice(parseInt(index),1);
+	}
 });
 
 dojo.declare("set.Deck", null, {
@@ -120,6 +135,10 @@ dojo.declare("set.Deck", null, {
 			draw.push(this.cards.pop());
 		}
 		return draw;
+	},
+	
+	drawOne: function() {
+		return this.cards.pop();
 	}
 });
 

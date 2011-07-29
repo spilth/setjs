@@ -13,6 +13,14 @@ h1 {
 	text-align: center;
 }
 
+#theTable {
+	width: 700px;
+}
+
+#score {
+	font-size: 3.0em;
+}
+
 img.card {
 	border: 4px solid #ccc;
 }
