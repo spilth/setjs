@@ -1,3 +1,5 @@
+dojo.require("dojo.fx");
+
 dojo.declare("set.Game", null, {
 	deck: null,
 	table: null,
@@ -10,6 +12,8 @@ dojo.declare("set.Game", null, {
 	initializeGame: function() {
 		this.tableDiv = dojo.byId("theTable");
 		this.messageDiv = dojo.byId("message");
+
+		this.showMessage("Click 3 cards to select a Set!");
 				
 		dojo.connect(dojo.byId("drawMore"), "onclick", function(evt) {
 			game.drawMore();
@@ -38,22 +42,22 @@ dojo.declare("set.Game", null, {
 	
 	showHint: function() {
 		var count = this.findSets();
-		alert("There are " + count + " possible sets");
+		this.showMessage("There are " + count + " possible sets");
 		this.score -= count;
 		this.renderScore();
 	},
 	
 	findSets: function() {
 		var setCount = 0;
-		var a, b, c;
+		var first, second, third;
 		
 		for (var i = 0; i < this.table.cards.length; i++) {
 			for (var j = i+1; j < this.table.cards.length; j++) {
 				for (var k = j+1; k < this.table.cards.length; k++) {
-					a = this.table.cards[i];
-					b = this.table.cards[j];
-					c = this.table.cards[k];
-					if (this.isValidSetSelected(a, b, c)) {
+					first = this.table.cards[i];
+					second = this.table.cards[j];
+					third = this.table.cards[k];
+					if (this.isValidSet(first, second, third)) {
 						setCount++;
 					}
 				}
@@ -68,7 +72,7 @@ dojo.declare("set.Game", null, {
 		for (i = 0; i < this.table.cards.length; i++) {
 			var card = dojo.create("img", {src: this.table.cards[i].imageUrl, id: i, class: "card"}, this.tableDiv);
 			dojo.connect(card, "onclick", function(evt) {
-				game.selectCard(evt);
+				game.selectCard(evt.target.id);
 			});
 		}
 	},
@@ -77,16 +81,16 @@ dojo.declare("set.Game", null, {
 		dojo.byId("score").innerHTML = this.score;
 	},
 
-	showMessage: function(message) {
-		this.messageDiv.innerHTML = message;
+	showMessage: function(text) {
+		this.messageDiv.innerHTML = text;
+		var messageNode = dojo.byId("message");
 		dojo.fx.chain([
-			dojo.fadeIn({node: message}).play(),
-			dojo.fadeOut({node: message}).play()
-		]);
+			dojo.fadeIn({node: messageNode, duration:1000}),
+			dojo.fadeOut({node: messageNode, duration:2000}),
+		]).play();
 	},
 
-	selectCard: function(evt) {
-		var cardId = evt.target.id;
+	selectCard: function(cardId) {
 		var card = dojo.byId(cardId);
 
 		dojo.toggleClass(card, "selected");
@@ -94,16 +98,18 @@ dojo.declare("set.Game", null, {
 		this.selected = dojo.query(".selected");
 		
 		if (this.selected.length == 3) {
-			this.checkForSet();
+			this.validateSelectedSet();
 		}
 	},
 	
-	checkForSet: function() {
+	validateSelectedSet: function() {
 		var a = game.table.cards[this.selected[0].id];
 		var b = game.table.cards[this.selected[1].id];
 		var c = game.table.cards[this.selected[2].id];
 		
-		if (this.isValidSetSelected(a, b, c)) {
+		if (this.isValidSet(a, b, c)) {
+			this.showMessage("Set found!");
+			
 			this.score++;
 			
 			this.selected.forEach(function(node, index, nodelist){
@@ -125,7 +131,7 @@ dojo.declare("set.Game", null, {
 
 	},
 	
-	isValidSetSelected: function(a, b, c) {
+	isValidSet: function(a, b, c) {
 		var count = a.count + b.count + c.count;
 		if (count % 3 > 0) return false;
 		
