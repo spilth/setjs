@@ -3,12 +3,22 @@ dojo.declare("set.Game", null, {
 	table: null,
 	selected: null,
 	tableDiv: null,
+	messageDiv: null,
 	score: 0,
 	found: new Array(),
 	
 	initializeGame: function() {
 		this.tableDiv = dojo.byId("theTable");
+		this.messageDiv = dojo.byId("message");
+				
+		dojo.connect(dojo.byId("drawMore"), "onclick", function(evt) {
+			game.drawMore();
+		});
 
+		dojo.connect(dojo.byId("hint"), "onclick", function(evt) {
+			game.showHint();
+		});
+		
 		this.deck = new set.Deck();
 		this.deck.shuffle();
 		
@@ -18,6 +28,39 @@ dojo.declare("set.Game", null, {
 		this.selected = new Array();
 
 		this.renderTable();
+		this.renderScore();
+	},
+
+	drawMore: function() {
+		this.table.add(this.deck.draw(3));
+		this.renderTable();
+	},
+	
+	showHint: function() {
+		var count = this.findSets();
+		alert("There are " + count + " possible sets");
+		this.score -= count;
+		this.renderScore();
+	},
+	
+	findSets: function() {
+		var setCount = 0;
+		var a, b, c;
+		
+		for (var i = 0; i < this.table.cards.length; i++) {
+			for (var j = i+1; j < this.table.cards.length; j++) {
+				for (var k = j+1; k < this.table.cards.length; k++) {
+					a = this.table.cards[i];
+					b = this.table.cards[j];
+					c = this.table.cards[k];
+					if (this.isValidSetSelected(a, b, c)) {
+						setCount++;
+					}
+				}
+			}
+		}
+		
+		return setCount;
 	},
 	
 	renderTable: function() {
@@ -34,6 +77,14 @@ dojo.declare("set.Game", null, {
 		dojo.byId("score").innerHTML = this.score;
 	},
 
+	showMessage: function(message) {
+		this.messageDiv.innerHTML = message;
+		dojo.fx.chain([
+			dojo.fadeIn({node: message}).play(),
+			dojo.fadeOut({node: message}).play()
+		]);
+	},
+
 	selectCard: function(evt) {
 		var cardId = evt.target.id;
 		var card = dojo.byId(cardId);
@@ -48,7 +99,11 @@ dojo.declare("set.Game", null, {
 	},
 	
 	checkForSet: function() {
-		if (this.isValidSetSelected()) {
+		var a = game.table.cards[this.selected[0].id];
+		var b = game.table.cards[this.selected[1].id];
+		var c = game.table.cards[this.selected[2].id];
+		
+		if (this.isValidSetSelected(a, b, c)) {
 			this.score++;
 			
 			this.selected.forEach(function(node, index, nodelist){
@@ -58,7 +113,7 @@ dojo.declare("set.Game", null, {
 			this.renderTable();
 			
 		} else {
-			alert("Nope!");
+			this.showMessage("Invalid Set!");
 			this.score--;
 		}
 		
@@ -70,11 +125,7 @@ dojo.declare("set.Game", null, {
 
 	},
 	
-	isValidSetSelected: function() {
-		var a = game.table.cards[this.selected[0].id];
-		var b = game.table.cards[this.selected[1].id];
-		var c = game.table.cards[this.selected[2].id];
-
+	isValidSetSelected: function(a, b, c) {
 		var count = a.count + b.count + c.count;
 		if (count % 3 > 0) return false;
 		

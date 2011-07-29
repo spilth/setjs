@@ -9,8 +9,15 @@ h1 {
 	text-align: center;
 }
 
+#main {
+	width: 700px;
+	margin: auto;
+}
+
 #message {
 	text-align: center;
+	background: #ff0;
+	font-size: 2.0em;
 }
 
 #theTable {
@@ -23,6 +30,7 @@ h1 {
 
 img.card {
 	border: 4px solid #ccc;
+	margin: 2px;
 }
 
 img.selected {
