@@ -6,15 +6,12 @@ dojo.declare("set.Game", null, {
 	selected: null,
 	tableDiv: null,
 	messageDiv: null,
-	score: 0,
-	found: new Array(),
+	score: null,
 	
 	initializeGame: function() {
 		this.tableDiv = dojo.byId("theTable");
 		this.messageDiv = dojo.byId("message");
 
-		this.showMessage("Click 3 cards to select a Set!");
-				
 		dojo.connect(dojo.byId("drawMore"), "onclick", function(evt) {
 			game.drawMore();
 		});
@@ -22,7 +19,15 @@ dojo.declare("set.Game", null, {
 		dojo.connect(dojo.byId("hint"), "onclick", function(evt) {
 			game.showHint();
 		});
-		
+
+		dojo.connect(dojo.byId("new"), "onclick", function(evt) {
+			game.newGame();
+		});
+
+		this.newGame();
+	},
+
+	newGame: function() {
 		this.deck = new set.Deck();
 		this.deck.shuffle();
 		
@@ -31,8 +36,12 @@ dojo.declare("set.Game", null, {
 
 		this.selected = new Array();
 
+		this.score = 0;
+		
 		this.renderTable();
 		this.renderScore();
+
+		this.showMessage("Click 3 cards to select a Set!");
 	},
 
 	drawMore: function() {
@@ -42,7 +51,7 @@ dojo.declare("set.Game", null, {
 	
 	showHint: function() {
 		var count = this.findSets();
-		this.showMessage("There are " + count + " possible sets");
+		this.showMessage("There are " + count + " possible sets...");
 		this.score -= count;
 		this.renderScore();
 	},
@@ -52,10 +61,10 @@ dojo.declare("set.Game", null, {
 		var first, second, third;
 		
 		for (var i = 0; i < this.table.cards.length; i++) {
+			first = this.table.cards[i];
 			for (var j = i+1; j < this.table.cards.length; j++) {
+				second = this.table.cards[j];
 				for (var k = j+1; k < this.table.cards.length; k++) {
-					first = this.table.cards[i];
-					second = this.table.cards[j];
 					third = this.table.cards[k];
 					if (this.isValidSet(first, second, third)) {
 						setCount++;
@@ -69,11 +78,20 @@ dojo.declare("set.Game", null, {
 	
 	renderTable: function() {
 		dojo.empty(this.tableDiv);
+		var table = dojo.create("table", null, this.tableDiv);
+		var row;
+
 		for (i = 0; i < this.table.cards.length; i++) {
-			var card = dojo.create("img", {src: this.table.cards[i].imageUrl, id: i, class: "card"}, this.tableDiv);
+			if (i % 3 == 0) {
+				row = dojo.create("tr", null, table);
+			}
+			var td = dojo.create("td", null, row);
+			
+			var card = dojo.create("img", {src: this.table.cards[i].imageUrl, id: i, "class": "card"}, td);
 			dojo.connect(card, "onclick", function(evt) {
 				game.selectCard(evt.target.id);
 			});
+			
 		}
 	},
 	
@@ -108,18 +126,27 @@ dojo.declare("set.Game", null, {
 		var c = game.table.cards[this.selected[2].id];
 		
 		if (this.isValidSet(a, b, c)) {
-			this.showMessage("Set found!");
+			this.showMessage("You found a Set!");
 			
 			this.score++;
 			
+			var offset = 0;
 			this.selected.forEach(function(node, index, nodelist){
-				game.table.cards[node.id] = game.deck.drawOne();
+				var card = game.deck.drawOne();
+				if (card != null) {
+					// table.replaceCard(node.id, card)
+					game.table.cards[node.id] = card;
+				} else {
+					// table.removeCard(node.id - offset)
+					game.table.cards.splice(parseInt(node.id - offset),1);
+					offset++;					
+				}
 			});
 			
 			this.renderTable();
 			
 		} else {
-			this.showMessage("Invalid Set!");
+			this.showMessage("Sorry, that's an invalid Set!");
 			this.score--;
 		}
 		
@@ -166,11 +193,12 @@ dojo.declare("set.Table", null, {
 });
 
 dojo.declare("set.Deck", null, {
-	cards: new Array(),
-
+	cards: null,
+	
 	constructor: function() {
+		this.cards = new Array();
 		for (i = 0; i < 3; i++) {
-			for (j =0; j < 3; j++) {
+			for (j = 0; j < 3; j++) {
 				for (k = 0; k < 3; k++) {
 					for (l = 0; l < 3; l++) {
 						this.cards.push(new set.Card(i,j,k,l));
@@ -182,7 +210,7 @@ dojo.declare("set.Deck", null, {
 
 	shuffle: function() {
 		this.cards = this.cards.sort(function(a,b) {
-			return a.order < b.order;
+			return a.order - b.order;
 		});
 	},
 	
