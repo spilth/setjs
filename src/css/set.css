@@ -24,8 +24,17 @@ h1 {
 	width: 700px;
 }
 
+#buttons {
+	text-align: center;
+}
+
 #score {
 	font-size: 3.0em;
+}
+
+button {
+	width: 128px;
+	height: 64px;
 }
 
 img.card {

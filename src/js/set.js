@@ -1,32 +1,69 @@
 dojo.require("dojo.fx");
+dojo.require("dojox.image");
+dojo.require("dijit.Dialog");
 
 dojo.declare("set.Game", null, {
 	deck: null,
 	table: null,
 	selected: null,
+	score: null,
+
 	tableDiv: null,
 	messageDiv: null,
-	score: null,
+	drawButton: null,
+	hintButton: null,
+	newButton: null,
+	howButton: null,
 	
 	initializeGame: function() {
 		this.tableDiv = dojo.byId("theTable");
 		this.messageDiv = dojo.byId("message");
+		this.drawButton = dojo.byId("draw");
+		this.hintButton = dojo.byId("hint");
+		this.newButton = dojo.byId("new");
+		this.howButton = dojo.byId("how");
 
-		dojo.connect(dojo.byId("drawMore"), "onclick", function(evt) {
+		dojo.connect(this.drawButton, "onclick", function(evt) {
 			game.drawMore();
 		});
 
-		dojo.connect(dojo.byId("hint"), "onclick", function(evt) {
+		dojo.connect(this.hintButton, "onclick", function(evt) {
 			game.showHint();
 		});
 
-		dojo.connect(dojo.byId("new"), "onclick", function(evt) {
+		dojo.connect(this.newButton, "onclick", function(evt) {
 			game.newGame();
 		});
+
+		dojo.connect(this.howButton, "onclick", function(evt) {
+			game.showHowToPlay();
+		});
+
+		this.preloadCardImages();
 
 		this.newGame();
 	},
 
+	preloadCardImages: function() {
+		var deck = new set.Deck();
+		var cards = deck.cards;
+		var imageUrls = new Array();
+		for (i = 0 ; i < cards.length; i++) {
+			imageUrls.push(cards[i].imageUrl);
+		}
+		dojox.image.preload(imageUrls);
+		
+	},
+
+	showHowToPlay: function() {
+	 myDialog = new dijit.Dialog({
+	      title: "How To Play",
+	      content: "To create a SET, a player must locate three cards in which each of the four features is either all the same on each card or all different on each card, when looked at individually. The four features are, symbol (oval, squiggle or diamond), color (red, purple or green), number (one, two or three) or shading (solid, striped or open).",
+	      style: "width: 400px",
+	  });
+	myDialog.show();
+	},
+	
 	newGame: function() {
 		this.deck = new set.Deck();
 		this.deck.shuffle();
@@ -45,13 +82,34 @@ dojo.declare("set.Game", null, {
 	},
 
 	drawMore: function() {
+		var count = this.findSets();
+
+		if (count == 1) {
+			this.showMessage("There was " + count + " possible set. " + (count+1) + " points lost!");
+		} else {
+			this.showMessage("There were " + count + " possible sets. " + (count+1) + " points lost!");
+		}
+
+		this.score -= count;
+
+		if (count > 0 ) {
+			this.score--;
+		}
+		
 		this.table.add(this.deck.draw(3));
+
 		this.renderTable();
+		this.renderScore();
 	},
 	
 	showHint: function() {
 		var count = this.findSets();
-		this.showMessage("There are " + count + " possible sets...");
+		if (count == 1) {
+			this.showMessage("There is " + count + " possible set. " + count + " point lost!");			
+		} else {
+			this.showMessage("There are " + count + " possible sets. " + count + " points lost!");
+		}
+		
 		this.score -= count;
 		this.renderScore();
 	},
@@ -126,7 +184,7 @@ dojo.declare("set.Game", null, {
 		var c = game.table.cards[this.selected[2].id];
 		
 		if (this.isValidSet(a, b, c)) {
-			this.showMessage("You found a Set!");
+			this.showMessage("You found a SET. 1 point awarded!");
 			
 			this.score++;
 			
@@ -146,7 +204,7 @@ dojo.declare("set.Game", null, {
 			this.renderTable();
 			
 		} else {
-			this.showMessage("Sorry, that's an invalid Set!");
+			this.showMessage("Sorry, that's an invalid SET. 1 point lost!");
 			this.score--;
 		}
 		
